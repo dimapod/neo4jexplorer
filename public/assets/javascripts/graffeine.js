@@ -230,7 +230,6 @@ Graffeine.graph = function(config) {
 
     // wire in socket, command, ui and event handlers
 
-    console.log("Connecting")
     this.socket      = new io.connect(Graffeine.conf.core.host);
     this.command     = new Graffeine.command(this);
     this.ui          = new Graffeine.ui(this);
@@ -239,7 +238,7 @@ Graffeine.graph = function(config) {
     this.settings    = Graffeine.conf.graphSettings;
     this.debug       = false;
     this.refs.div    = this.ui.identifiers.graphPlaceholder;
-    this.updateMode  = 'replace';           // {'update'|'replace'} for new svg data
+    this.updateMode  = 'update';           // {'update'|'replace'} for new svg data
 
     this.width       = Graffeine.conf.graphSettings.width;
     this.height      = Graffeine.conf.graphSettings.height;
@@ -271,7 +270,7 @@ Graffeine.graph.prototype.refresh  = function() {
     this.ui.updateNodeTypes();
     this.ui.updateStats(this);
 
-    if(this.updateMode === 'replace' || $(this.refs.div).length === 0) {
+    if(this.updateMode === 'replace' || !this.refs.force) {
         this.makeSvg();
     }
 
@@ -317,6 +316,10 @@ Graffeine.graph.prototype.addGraphData = function(graphData) {
     //  Add all nodes *then* all links
     //  Innefficient, but ensures links are only between 'known' nodes
 
+    this.data._nodes = _.extend({}, this.data.nodes);
+    this.data.nodes = {};
+    this.data.links = [];
+
     graphData.nodes.forEach(function(n) {
         if(n.node === 'n') graph.addNode(n);
     });
@@ -354,7 +357,7 @@ Graffeine.graph.prototype.addNode = function(node) {
 
     this.debugMesg("(addNode) Adding node " + node.id);
     var n = new Graffeine.Node(node);
-    if(this.data.nodes[n.id] !== undefined) n.transferD3Data(this.data.nodes[n.id]);
+    if(this.data._nodes[n.id] !== undefined) n.transferD3Data(this.data._nodes[n.id]);
     this.data.nodes[n.id] = n;
     this.addNodeType(n.type);
 };
@@ -1041,6 +1044,9 @@ Graffeine.graph.prototype.drawNodes = function() {
             .call(this.refs.force.drag);
 
     this.refs.circle.exit()
+        .transition()
+        .duration(500)
+        .style("opacity", 0)
         .remove();
 
     /**

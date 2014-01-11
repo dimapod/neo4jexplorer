@@ -15,8 +15,8 @@ Graffeine.conf = {};
 **/
 
 Graffeine.conf.graphSettings = {
-    width:               1200,  // width of the graph UI display
-    height:               800,  // height of the graph UI display
+    width:               1100,  // width of the graph UI display
+    height:               700,  // height of the graph UI display
     nodeLimit:             50,  // Max nodes to display in UI
     circleRadius:          45,  // Radius of circles (nodes)
     linkDistance:         250,  // Distance between circles (nodes)
