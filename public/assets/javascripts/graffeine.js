@@ -320,8 +320,14 @@ Graffeine.graph.prototype.addGraphData = function(graphData) {
     this.data.nodes = {};
     this.data.links = [];
 
+//    var position;
+//    if (graphData.root) {
+//        var root = this.data._nodes[graphData.root]
+//        position = {x: root.x, y: root.y};
+//    }
+
     graphData.nodes.forEach(function(n) {
-        if(n.node === 'n') graph.addNode(n);
+        if(n.node === 'n') graph.addNode(n, {x: Graffeine.conf.graphSettings.width/2, y:Graffeine.conf.graphSettings.height/2});
     });
 
     graphData.nodes.forEach(function(n) {
@@ -341,7 +347,7 @@ Graffeine.graph.prototype.addGraphData = function(graphData) {
  *  @param {node} node data struct
 **/
 
-Graffeine.graph.prototype.addNode = function(node) {
+Graffeine.graph.prototype.addNode = function(node, position) {
 
     if(this.nodeCount() > Graffeine.conf.graphSettings.nodeLimit) {
         console.log("WARNING: Node count exceeds max (" + 
@@ -357,7 +363,12 @@ Graffeine.graph.prototype.addNode = function(node) {
 
     this.debugMesg("(addNode) Adding node " + node.id);
     var n = new Graffeine.Node(node);
-    if(this.data._nodes[n.id] !== undefined) n.transferD3Data(this.data._nodes[n.id]);
+    if (this.data._nodes[n.id] !== undefined) {
+        n.transferD3Data(this.data._nodes[n.id]);
+    } else if (position) {
+        n.x = position.x;
+        n.y = position.y;
+    }
     this.data.nodes[n.id] = n;
     this.addNodeType(n.type);
 };
@@ -1041,7 +1052,11 @@ Graffeine.graph.prototype.drawNodes = function() {
             .on("mouseover", this.handler.nodeMouseover(this))
             .on("mouseout", this.handler.nodeMouseout(this))
             .on("contextmenu", this.handler.nodeRightClick(this))
-            .call(this.refs.force.drag);
+            .call(this.refs.force.drag)
+            .style("opacity", 0)
+            .transition()
+            .duration(500)
+            .style("opacity", 1);
 
     this.refs.circle.exit()
         .transition()
@@ -1067,7 +1082,7 @@ Graffeine.graph.prototype.drawNodes = function() {
             .attr("class", "draglet")
             .attr("r", 5)
             .attr("cx", 0)
-            .attr("cy", 40)
+            .attr("cy", Graffeine.conf.graphSettings.circleRadius-5)
             .call(dragCircle);
 
     this.refs.draglet.exit()
@@ -1132,6 +1147,9 @@ Graffeine.graph.prototype.drawPaths = function() {
             .on("contextmenu", this.handler.linkRightClick(this));
 
     this.refs.path.exit()
+        .transition()
+        .duration(500)
+        .style("opacity", 0)
         .remove();
 
 };
@@ -1490,12 +1508,12 @@ Graffeine.ui.prototype.showNodeMenu = function(node) {
     $(this.labels.nodeMenuRels).html(table);
     $(this.identifiers.nodeMenu).dialog("open");
     $(graph.ui.buttons.dialogButtons).blur();
-}
+};
 
 Graffeine.ui.prototype.hideNodeMenu = function() {
     $(this.labels.nodeMenuRels).html("");
     $(this.identifiers.nodeMenu).dialog("close");
-}
+};
 
 /**
  *  Disable/Enable node action buttons

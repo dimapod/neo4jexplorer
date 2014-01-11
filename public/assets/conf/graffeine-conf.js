@@ -18,7 +18,7 @@ Graffeine.conf.graphSettings = {
     width:               1100,  // width of the graph UI display
     height:               700,  // height of the graph UI display
     nodeLimit:             50,  // Max nodes to display in UI
-    circleRadius:          45,  // Radius of circles (nodes)
+    circleRadius:          35,  // Radius of circles (nodes)
     linkDistance:         250,  // Distance between circles (nodes)
     charge:             -1200,  // node repel charge
     selectedClass: 'selected'   // css class for selected (clicked) nodes
