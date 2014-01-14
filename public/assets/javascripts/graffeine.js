@@ -1148,7 +1148,7 @@ Graffeine.graph.prototype.drawPaths = function() {
 
     this.refs.path.exit()
         .transition()
-        .duration(500)
+        .duration(200)
         .style("opacity", 0)
         .remove();
 
@@ -1167,11 +1167,13 @@ Graffeine.graph.prototype.makeSvg = function() {
     // force layout
 
     this.refs.force = d3.layout.force()
-        .nodes(d3.values(this.data.nodes), function(node) { return node.id; })
-        .links(this.data.links, function(link) { return link.source.id + "-" + link.target.id; })
+//        .nodes(d3.values(this.data.nodes), function(node) { return node.id; })
+//        .links(this.data.links, function(link) { return link.source.id + "-" + link.target.id; })
         .size([this.width, this.height])
         .linkDistance(this.settings.linkDistance)
         .charge(this.settings.charge)
+        .friction(.7)
+        .gravity(.05)
         .on("tick", Graffeine.force.tick(this));
 
     this.refs.svg = d3
