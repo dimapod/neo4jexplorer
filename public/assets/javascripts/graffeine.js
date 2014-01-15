@@ -1190,7 +1190,7 @@ Graffeine.graph.prototype.makeSvg = function() {
         .attr("height", this.height)
         .attr("pointer-events", "all")
         .append('svg:g')
-        .call(d3.behavior.zoom().scaleExtent([.2, 8]).on("zoom", this.handler.svgZoom(this))).on("dblclick.zoom", null)
+        .call(d3.behavior.zoom().scaleExtent([.5, 8]).on("zoom", this.handler.svgZoom(this))).on("dblclick.zoom", null)
         .append('svg:g');
 
     this.refs.svg.append('svg:rect')
@@ -1903,7 +1903,7 @@ Graffeine.eventHandler.prototype.linkRightClick = function() {
 
 Graffeine.eventHandler.prototype.nodeClick = function() {
     return function(d, i) {
-        console.log("mouseup")
+        if (d3.event.defaultPrevented) return; // click suppressed
 
         d3.event.stopPropagation();
         graph.refs.force.stop();
@@ -2001,7 +2001,6 @@ Graffeine.eventHandler.prototype.nodeMouseout = function() {
 /**
  *  Handle right-clicks on node
 **/
-
 Graffeine.eventHandler.prototype.nodeRightClick = function() {
     return function(d, i) {
         graph.debugMesg("(nodeRightClick) processing");
@@ -2012,12 +2011,14 @@ Graffeine.eventHandler.prototype.nodeRightClick = function() {
         graph.ui.showNodeMenu(d);
     };
 };
+
 /**
  *  Handle clicks on svg
 **/
-
 Graffeine.eventHandler.prototype.svgClick = function() {
     return function(d, i) {
+        if (d3.event.defaultPrevented) return; // click suppressed
+
         graph.debugMesg("(svgClick) processing");
         graph.refs.force.stop();
         if(graph.state.selectedNode!==null) {
@@ -2028,10 +2029,10 @@ Graffeine.eventHandler.prototype.svgClick = function() {
         }
     };
 };
+
 /**
  *  Handle new relatiosnhip selected
 **/
-
 Graffeine.eventHandler.prototype.newRelSelected = function(newRelType) {
     if(newRelType !== null) {
         graph.connectNodes(graph.state.sourceNode, graph.state.hoveredNode, newRelType);
@@ -2041,15 +2042,14 @@ Graffeine.eventHandler.prototype.newRelSelected = function(newRelType) {
 /**
  *  Handle clicks on buttons to delete rels in node menu
 **/
-
 Graffeine.eventHandler.prototype.deleteRelButtonClick = function(source, target, rel) {
     graph.command.send('rel-delete', { source: source, target: target, rel: rel});
     graph.ui.hideNodeMenu();
 };
+
 /**
  *  Handle zoom
 **/
-
 Graffeine.eventHandler.prototype.svgZoom = function() {
     return function() {
         console.log("here", d3.event.translate, d3.event.scale);
