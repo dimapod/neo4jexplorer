@@ -1048,6 +1048,9 @@ Graffeine.graph.prototype.drawNodes = function() {
             .style('filter', 'url(#dropshadow)')
             .attr("r", Graffeine.conf.graphSettings.circleRadius)
             .on("click", this.handler.nodeClick(this))
+//            .on("mousedown", function() { self.refs.force.mouseFlag = true; })
+//            .on("mousemove", function() { self.refs.force.mouseFlag = false; })
+//            .on("mouseup", function() { if (self.refs.force.mouseFlag) return self.handler.nodeClick(this) })
             .on("dblclick", this.handler.nodeDoubleClick(this))
             .on("mouseover", this.handler.nodeMouseover(this))
             .on("mouseout", this.handler.nodeMouseout(this))
@@ -1167,8 +1170,6 @@ Graffeine.graph.prototype.makeSvg = function() {
     // force layout
 
     this.refs.force = d3.layout.force()
-//        .nodes(d3.values(this.data.nodes), function(node) { return node.id; })
-//        .links(this.data.links, function(link) { return link.source.id + "-" + link.target.id; })
         .size([this.width, this.height])
         .linkDistance(this.settings.linkDistance)
         .charge(this.settings.charge)
@@ -1176,12 +1177,26 @@ Graffeine.graph.prototype.makeSvg = function() {
         .gravity(.05)
         .on("tick", Graffeine.force.tick(this));
 
+    this.refs.force.drag()
+        .on("dragstart", function(e) {console.log("dragstart"); d3.event.sourceEvent.stopPropagation();})
+        .on("dragend", function(e) {console.log("dragend"); d3.event.sourceEvent.stopPropagation();});
+    //d3.event.stopPropagation();
+
     this.refs.svg = d3
         .select(this.refs.div)
         .append("svg:svg")
         .on('click', this.handler.svgClick(this))
         .attr("width",  this.width)
-        .attr("height", this.height);
+        .attr("height", this.height)
+        .attr("pointer-events", "all")
+        .append('svg:g')
+        .call(d3.behavior.zoom().scaleExtent([.2, 8]).on("zoom", this.handler.svgZoom(this))).on("dblclick.zoom", null)
+        .append('svg:g');
+
+    this.refs.svg.append('svg:rect')
+        .attr('width', this.width)
+        .attr('height', this.height)
+        .attr('fill', 'white');
 
     //  tool tip place holder
 
@@ -1888,6 +1903,8 @@ Graffeine.eventHandler.prototype.linkRightClick = function() {
 
 Graffeine.eventHandler.prototype.nodeClick = function() {
     return function(d, i) {
+        console.log("mouseup")
+
         d3.event.stopPropagation();
         graph.refs.force.stop();
         graph.ui.hideNodeInformation();
@@ -2028,4 +2045,14 @@ Graffeine.eventHandler.prototype.newRelSelected = function(newRelType) {
 Graffeine.eventHandler.prototype.deleteRelButtonClick = function(source, target, rel) {
     graph.command.send('rel-delete', { source: source, target: target, rel: rel});
     graph.ui.hideNodeMenu();
+};
+/**
+ *  Handle zoom
+**/
+
+Graffeine.eventHandler.prototype.svgZoom = function() {
+    return function() {
+        console.log("here", d3.event.translate, d3.event.scale);
+        graph.refs.svg.attr("transform", "translate(" + d3.event.translate + ") scale(" + d3.event.scale + ")");
+    }
 };
